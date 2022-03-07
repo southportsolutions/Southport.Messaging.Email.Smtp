@@ -6,7 +6,7 @@ namespace Southport.Messaging.Email.Smtp.Test;
 
 public static class Startup
 {
-    public static ISmtpOptions Options { get; private set; }
+    public static SmtpOptions Options { get; private set; }
 
     public static ISmtpOptions GetOptions()
     {
@@ -28,6 +28,7 @@ public static class Startup
                 Options.Password = Environment.GetEnvironmentVariable("SMTPPASSWORD");
                 Options.Port = int.Parse(Environment.GetEnvironmentVariable("SMTPPORT"));
                 Options.TestEmailAddresses = Environment.GetEnvironmentVariable("SMTPTESTEMAILADDRESSES");
+                Options.FromAddress = Environment.GetEnvironmentVariable("SMTPFROMADDRESS");
             }
 
             if (string.IsNullOrEmpty(Options.Address))
