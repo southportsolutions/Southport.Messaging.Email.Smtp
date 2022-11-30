@@ -9,12 +9,12 @@
 	  <Description>MailGun Implementation of the Southport.Messaging.Email.Smtp</Description>
 	  <PackageLicenseExpression>MIT</PackageLicenseExpression>
 	  <PackageIcon>icon.png</PackageIcon>
-	  <PackageReleaseNotes>Initial Release.</PackageReleaseNotes>
+	  <PackageReleaseNotes>Updated packages..</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Handlebars.Net" Version="2.1.0" />
-    <PackageReference Include="MailKit" Version="3.1.1" />
+    <PackageReference Include="Handlebars.Net" Version="2.1.2" />
+    <PackageReference Include="MailKit" Version="3.4.3" />
     <PackageReference Include="Southport.Messaging.Email.Core" Version="1.17.0" />
   </ItemGroup>  
 	
