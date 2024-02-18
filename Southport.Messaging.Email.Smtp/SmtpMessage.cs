@@ -1,19 +1,19 @@
 ﻿using System.Text;
 using HandlebarsDotNet;
 using MailKit;
-using MailKit.Net.Smtp;
 using MimeKit;
 using Southport.Messaging.Email.Core;
 using Southport.Messaging.Email.Core.EmailAttachments;
 using Southport.Messaging.Email.Core.Recipient;
 using Southport.Messaging.Email.Core.Result;
+using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 
 namespace Southport.Messaging.Email.Smtp
 {
     public class SmtpMessage : ISmtpMessage
     {
         private readonly ISmtpOptions _options;
-        private readonly List<Stream> _streams = new List<Stream>();
+        private readonly List<Stream> _streams = new();
 
         #region FromAddress
 
@@ -25,18 +25,6 @@ namespace Southport.Messaging.Email.Smtp
         public IEmailAddress FromAddress { get; set; }
 
         public string From => FromAddress.ToString();
-
-        public ISmtpMessage AddFromAddress(IEmailAddress emailAddress)
-        {
-            FromAddress = emailAddress;
-            return this;
-        }
-
-        public ISmtpMessage AddFromAddress(string emailAddress, string name = null)
-        {
-            FromAddress = new EmailAddress(emailAddress, name);
-            return this;
-        }
 
         public ISmtpMessage SetFromAddress(IEmailAddress emailAddress)
         {
@@ -101,20 +89,20 @@ namespace Southport.Messaging.Email.Smtp
         public IEnumerable<IEmailAddress> CcAddressesValid => CcAddresses.Where(e => e.IsValid);
         public IEnumerable<IEmailAddress> CcAddressesInvalid => CcAddresses.Where(e => !e.IsValid);
 
-        public ISmtpMessage AddCcAddress(IEmailAddress address)
+        public ISmtpMessage AddCcAddress(IEmailAddress emailAddress)
         {
-            ((List<IEmailAddress>)CcAddresses).Add(address);
+            ((List<IEmailAddress>)CcAddresses).Add(emailAddress);
             return this;
         }
 
-        public ISmtpMessage AddCcAddress(string address, string name = null)
+        public ISmtpMessage AddCcAddress(string emailAddress, string name = null)
         {
-            return AddCcAddress(new EmailAddress(address, name));
+            return AddCcAddress(new EmailAddress(emailAddress, name));
         }
 
-        public ISmtpMessage AddCcAddresses(List<IEmailAddress> addresses)
+        public ISmtpMessage AddCcAddresses(List<IEmailAddress> emailAddresses)
         {
-            ((List<IEmailAddress>)CcAddresses).AddRange(addresses);
+            ((List<IEmailAddress>)CcAddresses).AddRange(emailAddresses);
             return this;
         }
 
@@ -127,20 +115,20 @@ namespace Southport.Messaging.Email.Smtp
         public IEnumerable<IEmailAddress> BccAddressesValid => BccAddresses.Where(e => e.IsValid);
         public IEnumerable<IEmailAddress> BccAddressesInvalid => BccAddresses.Where(e => !e.IsValid);
 
-        public ISmtpMessage AddBccAddress(IEmailAddress address)
+        public ISmtpMessage AddBccAddress(IEmailAddress emailAddress)
         {
-            ((List<IEmailAddress>)BccAddresses).Add(address);
+            ((List<IEmailAddress>)BccAddresses).Add(emailAddress);
             return this;
         }
 
-        public ISmtpMessage AddBccAddress(string address, string name = null)
+        public ISmtpMessage AddBccAddress(string emailAddress, string name = null)
         {
-            return AddBccAddress(new EmailAddress(address, name));
+            return AddBccAddress(new EmailAddress(emailAddress, name));
         }
 
-        public ISmtpMessage AddBccAddresses(List<IEmailAddress> addresses)
+        public ISmtpMessage AddBccAddresses(List<IEmailAddress> emailAddresses)
         {
-            ((List<IEmailAddress>)BccAddresses).AddRange(addresses);
+            ((List<IEmailAddress>)BccAddresses).AddRange(emailAddresses);
             return this;
         }
 
@@ -310,7 +298,7 @@ namespace Southport.Messaging.Email.Smtp
 
         #region Custom Variables
 
-        public Dictionary<string, string> CustomArguments { get; }
+        public Dictionary<string, string> CustomArguments { get; } = new();
 
         public SmtpMessage AddCustomVariable(string name, string value)
         {
@@ -329,17 +317,29 @@ namespace Southport.Messaging.Email.Smtp
         }
         #endregion
 
+        #region Substitutions
+
+        public Dictionary<string, object> Substitutions { get; } = new();
+
+        public ISmtpMessage AddSubstitution(string key, object value)
+        {
+            Substitutions[key] = value;
+            return this;
+        }
+
+        public ISmtpMessage AddSubstitutions(Dictionary<string, object> substitutions)
+        {
+            foreach (var substitution in substitutions)
+            {
+                Substitutions[substitution.Key] = substitution.Value;
+            }
+
+            return this;
+        }
+
+        #endregion
+
         #region Core Methods
-
-        IEmailMessageCore IEmailMessageCore.AddFromAddress(string emailAddress, string name)
-        {
-            return AddFromAddress(emailAddress, name);
-        }
-
-        IEmailMessageCore IEmailMessageCore.AddFromAddress(IEmailAddress emailAddress)
-        {
-            return AddFromAddress(emailAddress);
-        }
 
         IEmailMessageCore IEmailMessageCore.SetFromAddress(string emailAddress, string name)
         {
@@ -461,6 +461,16 @@ namespace Southport.Messaging.Email.Smtp
             return AddCustomArgument(key, value);
         }
 
+        IEmailMessageCore IEmailMessageCore.AddSubstitution(string key, object value)
+        {
+            return AddSubstitution(key, value);
+        }
+
+        IEmailMessageCore IEmailMessageCore.AddSubstitutions(Dictionary<string, object> substitutions)
+        {
+            return AddSubstitutions(substitutions);
+        }
+
         #endregion
 
         public SmtpMessage(ISmtpOptions options)
@@ -469,8 +479,7 @@ namespace Southport.Messaging.Email.Smtp
             ToAddresses = new List<IEmailRecipient>();
             CcAddresses = new List<IEmailAddress>();
             BccAddresses = new List<IEmailAddress>();
-            Attachments = new List<IEmailAttachment>();
-            CustomArguments = new Dictionary<string, string>();
+            Attachments = [];
         }
 
         #region Send
@@ -529,11 +538,7 @@ namespace Southport.Messaging.Email.Smtp
             {
                 foreach (var stream in _streams)
                 {
-#if NET5_0 || NETSTANDARD2_1
                     await stream.DisposeAsync();
-#else
-                    stream.Dispose();
-#endif
                 }
             }
 
