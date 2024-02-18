@@ -9,24 +9,7 @@ public interface ISmtpMessage : IEmailMessageCore
     Task<IEnumerable<SmtpEmailResult>> SubstituteAndSend(CancellationToken cancellationToken = default);
 
     #region Overrid Core Methods
-
-    /// <summary>
-    /// Adds from address.
-    /// </summary>
-    /// <param name="emailAddress">The address.</param>
-    /// <returns>IEmailMessage.</returns>
-    /// 
-    [Obsolete("Use SetFromAddress.")]
-    new ISmtpMessage AddFromAddress(IEmailAddress emailAddress);
-    /// <summary>
-    /// Adds from address.
-    /// </summary>
-    /// <param name="emailAddress">The address.</param>
-    /// <param name="name">The name.</param>
-    /// <returns>IEmailMessage.</returns>
-    [Obsolete("Use SetFromAddress.")]
-    new ISmtpMessage AddFromAddress(string emailAddress, string name = null);
-
+    
     /// <summary>
     /// Adds from address.
     /// </summary>
@@ -183,6 +166,19 @@ public interface ISmtpMessage : IEmailMessageCore
     /// <param name="customArguments">The custom arguments.</param>
     /// <returns>IEmailMessage.</returns>
     new ISmtpMessage AddCustomArguments(Dictionary<string, string> customArguments);
+    /// <summary>
+    /// Adds the substitution to message substitutions. (recipient custom arguments will override message level ones).
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <param name="value">The value.</param>
+    /// <returns>IEmailMessage.</returns>
+    new ISmtpMessage AddSubstitution(string key, object value);
+    /// <summary>
+    /// Adds the substitutions.
+    /// </summary>
+    /// <param name="substitutions">The substitutions.</param>
+    /// <returns>IEmailMessage.</returns>
+    new ISmtpMessage AddSubstitutions(Dictionary<string, object> substitutions);
 
     #endregion
 
